@@ -66,9 +66,48 @@ class Logic_prover:
         df[expression] = df.apply(lambda row: self.evaluate_expression(expression, row), axis=1)
         return df[df[expression] == 1] if True_ else df
 
+    # 获取主范式
+    # i.主析取范式
+    def get_prin_disj_nf(self, expression: str):
+        df = self.evaluate(expression,True_=True)
+        variables = self.get_variables(expression)
+        disjs = []
+        for _, row in df.iterrows():
+            conjunct = []
+            for var in variables:
+                if row[var] == 1:
+                    conjunct.append(var)
+                else:
+                    conjunct.append(f'~{var}')
+            disjs.append('(' + '^'.join(conjunct) + ')')
+        return '&'.join(disjs)
+
+    # ii.主合取范式
+    def get_prin_conj_nf(self, expression: str):
+        df = self.evaluate(expression)
+        df = df[df[expression] == 0]
+        variables = self.get_variables(expression)
+        disjs = []
+        for _, row in df.iterrows():
+            conjunct = []
+            for var in variables:
+                if row[var] == 1:
+                    conjunct.append(var)
+                else:
+                    conjunct.append(f'~{var}')
+            disjs.append('(' + '&'.join(conjunct) + ')')
+        return '^'.join(disjs)
+
 # 使用示例
 if __name__ == '__main__':
     logic_prover = Logic_prover()
     expression = "(p->q)^(~r->p)"
+    # 获取真值表
     result_df = logic_prover.evaluate(expression)
+    # 获取主析取范式
+    prin_disj_nf = logic_prover.get_prin_conj_nf(expression)
+    # 获取主合取范式
+    prin_disj_nf = logic_prover.get_prin_disj_nf(expression)
     print(result_df)
+    print(prin_disj_nf)
+    print(prin_conj_nf)
